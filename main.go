@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/NikolaTosic-sudo/gator/internal/config"
 )
@@ -14,19 +14,25 @@ func main() {
 		log.Fatalf("error reading config %v", err)
 	}
 
-	fmt.Printf("Read config: %v\n", cfg)
-
-	errName := cfg.SetUser("nikola")
-
-	if errName != nil {
-		log.Fatalf("error reading config %v", errName)
+	s := &State{
+		Cfg: cfg,
 	}
 
-	cfg, err = config.Read()
-
-	if err != nil {
-		log.Fatalf("error reading config %v", errName)
+	cmds := commands{
+		command: make(map[string]func(*State, cliCommand) error),
 	}
 
-	fmt.Printf("Read config again: %v\n", cfg)
+	cmds.register("login", handleLogin)
+
+	arguments := os.Args
+
+	if len(arguments) < 2 {
+		log.Fatalf("not enough arguments \n")
+	}
+
+	cmds.run(s, cliCommand{
+		name:      arguments[1],
+		arguments: arguments[2:],
+		callback:  cmds.command[arguments[1]],
+	})
 }
