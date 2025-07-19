@@ -48,7 +48,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, created_at, updated_at, name from users WHERE name = $1
+SELECT id, created_at, updated_at, name FROM users WHERE name = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
@@ -61,4 +61,14 @@ func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
 		&i.Name,
 	)
 	return i, err
+}
+
+const resetDB = `-- name: ResetDB :exec
+
+DELETE FROM users
+`
+
+func (q *Queries) ResetDB(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, resetDB)
+	return err
 }

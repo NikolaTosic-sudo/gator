@@ -37,6 +37,7 @@ func main() {
 
 	cmds.register("login", handleLogin)
 	cmds.register("register", handleRegister)
+	cmds.register("reset", handleReset)
 
 	arguments := os.Args
 
