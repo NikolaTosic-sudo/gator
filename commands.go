@@ -103,6 +103,26 @@ func handleReset(state *State, cmd cliCommand) error {
 	return nil
 }
 
+func handleGetAllUsers(state *State, cmd cliCommand) error {
+
+	users, err := state.db.GetUsers(context.Background())
+
+	if err != nil {
+		log.Fatal("couldn't get users")
+		return err
+	}
+
+	for _, user := range users {
+		if user.Name == state.Cfg.CurrentUserName {
+			fmt.Println(user.Name, "(current)")
+		} else {
+			fmt.Println(user.Name)
+		}
+	}
+
+	return nil
+}
+
 func (c *commands) run(s *State, cmd cliCommand) error {
 
 	if s == nil {
