@@ -46,9 +46,13 @@ func main() {
 		log.Fatalf("not enough arguments \n")
 	}
 
-	cmds.run(s, cliCommand{
+	err = cmds.run(s, cliCommand{
 		name:      arguments[1],
 		arguments: arguments[2:],
 		callback:  cmds.command[arguments[1]],
 	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }

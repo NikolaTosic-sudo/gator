@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/NikolaTosic-sudo/gator/internal/database"
@@ -12,23 +11,27 @@ import (
 
 func handleLogin(state *State, cmd cliCommand) error {
 	if len(cmd.arguments) == 0 {
-		log.Fatal("please enter your username")
 		return fmt.Errorf("please enter your username")
 	}
 
 	user, err := state.db.GetUser(context.Background(), cmd.arguments[0])
 
 	if err != nil {
-		log.Fatal("user with this username doesn't exist")
-		return err
+		return fmt.Errorf("user with the username: %v doesn't exist", cmd.arguments[0])
+	}
+
+	if user.Name == state.Cfg.CurrentUserName {
+		fmt.Printf("%v is already logged in", user.Name)
+		return nil
 	}
 
 	err = state.Cfg.SetUser(user.Name)
 
 	if err != nil {
-		log.Fatal("invalid username")
 		return fmt.Errorf("invalid username")
 	}
+
+	fmt.Printf("Login successful. \nWelcome %v", user.Name)
 
 	return nil
 }
@@ -36,7 +39,6 @@ func handleLogin(state *State, cmd cliCommand) error {
 func handleRegister(state *State, cmd cliCommand) error {
 
 	if len(cmd.arguments) == 0 {
-		log.Fatal("please enter a name")
 		return fmt.Errorf("please enter a name")
 	}
 
@@ -45,8 +47,7 @@ func handleRegister(state *State, cmd cliCommand) error {
 	var emptyUser database.User
 
 	if user != emptyUser {
-		log.Fatal("User with that name already exists")
-		return nil
+		return fmt.Errorf("user with that name already exists")
 	}
 
 	createdUser, err := state.db.CreateUser(
@@ -60,8 +61,7 @@ func handleRegister(state *State, cmd cliCommand) error {
 	)
 
 	if err != nil {
-		fmt.Printf("there was an error with creating the user %v \n", err)
-		return fmt.Errorf("err")
+		return fmt.Errorf("there was an error with creating the user %v", err)
 	}
 
 	err = state.Cfg.SetUser(createdUser.Name)
@@ -92,7 +92,6 @@ func handleGetAllUsers(state *State, cmd cliCommand) error {
 	users, err := state.db.GetUsers(context.Background())
 
 	if err != nil {
-		log.Fatal("couldn't get users")
 		return err
 	}
 
