@@ -128,3 +128,28 @@ func handleFetch(state *State, cmd cliCommand) error {
 
 	return nil
 }
+
+func handleAddFeed(state *State, cmd cliCommand) error {
+	if len(cmd.arguments) < 2 {
+		return fmt.Errorf("please enter Name and URL")
+	}
+
+	user, err := state.db.GetUser(context.Background(), state.Cfg.CurrentUserName)
+
+	if err != nil {
+		return err
+	}
+
+	createFeed, err := state.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      cmd.arguments[0],
+		Url:       cmd.arguments[1],
+		UserID:    user.ID,
+	})
+
+	fmt.Print(createFeed)
+
+	return nil
+}

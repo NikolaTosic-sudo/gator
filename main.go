@@ -40,6 +40,7 @@ func main() {
 	cmds.register("reset", handleReset)
 	cmds.register("users", handleGetAllUsers)
 	cmds.register("agg", handleFetch)
+	cmds.register("addfeed", handleAddFeed)
 
 	arguments := os.Args
 
