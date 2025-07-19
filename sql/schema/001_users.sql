@@ -1,9 +1,9 @@
 -- +goose Up
 CREATE TABLE users(
-  ID UUID,
+  ID UUID NOT NULL,
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL,
-  name TEXT UNIQUE
+  name TEXT UNIQUE NOT NULL
 );
 
 -- +goose Down

@@ -1,14 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/NikolaTosic-sudo/gator/internal/config"
+	"github.com/NikolaTosic-sudo/gator/internal/database"
+	"github.com/google/uuid"
 )
 
 type State struct {
-	Cfg config.Config
+	db  *database.Queries
+	Cfg *config.Config
 }
 
 type cliCommand struct {
@@ -33,6 +38,51 @@ func handleLogin(state *State, cmd cliCommand) error {
 		log.Fatal("invalid username")
 		return fmt.Errorf("invalid username")
 	}
+
+	return nil
+}
+
+func handleRegister(state *State, cmd cliCommand) error {
+
+	if len(cmd.arguments) == 0 {
+		log.Fatal("please enter a name")
+		return fmt.Errorf("please enter a name")
+	}
+
+	user, err := state.db.GetUser(context.Background(), cmd.arguments[0])
+
+	if err != nil {
+		log.Fatal("please enter a name")
+		return fmt.Errorf("please enter a name")
+	}
+
+	var emptyUser database.User
+
+	if user != emptyUser {
+		log.Fatal("User with that name already exists")
+		return nil
+	}
+
+	createdUser, err := state.db.CreateUser(
+		context.Background(),
+		database.CreateUserParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Name:      cmd.arguments[0],
+		},
+	)
+
+	if err != nil {
+		fmt.Printf("there was an error with creating the user %v \n", err)
+		return fmt.Errorf("err")
+	}
+
+	state.Cfg.CurrentUserName = createdUser.Name
+
+	fmt.Print("The user was successfuly created\n")
+
+	fmt.Print(createdUser)
 
 	return nil
 }
