@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"html"
 	"time"
 
 	"github.com/NikolaTosic-sudo/gator/internal/database"
@@ -102,6 +103,28 @@ func handleGetAllUsers(state *State, cmd cliCommand) error {
 			fmt.Println(user.Name)
 		}
 	}
+
+	return nil
+}
+
+func handleFetch(state *State, cmd cliCommand) error {
+	client := &Client{}
+	rssFeed, err := client.fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+
+	if err != nil {
+		return err
+	}
+
+	rssFeed.Channel.Title = html.UnescapeString(rssFeed.Channel.Title)
+	rssFeed.Channel.Description = html.UnescapeString(rssFeed.Channel.Description)
+
+	for i, post := range rssFeed.Channel.Item {
+		post.Title = html.UnescapeString(post.Title)
+		post.Description = html.UnescapeString(post.Description)
+		rssFeed.Channel.Item[i] = post
+	}
+
+	fmt.Print(rssFeed)
 
 	return nil
 }
