@@ -9,3 +9,7 @@ VALUES (
   $6
 )
 RETURNING *;
+
+-- name: GetAllFeeds :many
+
+SELECT name, url, user_id FROM feeds;

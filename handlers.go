@@ -149,7 +149,33 @@ func handleAddFeed(state *State, cmd cliCommand) error {
 		UserID:    user.ID,
 	})
 
+	if err != nil {
+		return err
+	}
+
 	fmt.Print(createFeed)
+
+	return nil
+}
+
+func handleGetAllFeeds(state *State, cmd cliCommand) error {
+	feeds, err := state.db.GetAllFeeds(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	for _, feed := range feeds {
+		user, err := state.db.GetUserById(context.Background(), feed.UserID)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(feed.Name)
+		fmt.Println(feed.Url)
+		fmt.Println(user.Name)
+	}
 
 	return nil
 }
