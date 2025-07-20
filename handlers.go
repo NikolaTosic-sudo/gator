@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/NikolaTosic-sudo/gator/internal/database"
@@ -129,15 +130,9 @@ func handleFetch(state *State, cmd cliCommand) error {
 	}
 }
 
-func handleAddFeed(state *State, cmd cliCommand) error {
+func handleAddFeed(state *State, cmd cliCommand, user database.User) error {
 	if len(cmd.arguments) < 2 {
 		return fmt.Errorf("please enter Name and URL")
-	}
-
-	user, err := state.db.GetUser(context.Background(), state.Cfg.CurrentUserName)
-
-	if err != nil {
-		return err
 	}
 
 	createFeed, err := state.db.CreateFeed(context.Background(), database.CreateFeedParams{
@@ -191,18 +186,12 @@ func handleGetAllFeeds(state *State, cmd cliCommand) error {
 	return nil
 }
 
-func handleCreateFeedFollow(state *State, cmd cliCommand) error {
+func handleCreateFeedFollow(state *State, cmd cliCommand, user database.User) error {
 	if len(cmd.arguments) == 0 {
 		return fmt.Errorf("pleaes enter a valid url")
 	}
 
 	feed, err := state.db.GetFeedByUrl(context.Background(), cmd.arguments[0])
-
-	if err != nil {
-		return err
-	}
-
-	user, err := state.db.GetUser(context.Background(), state.Cfg.CurrentUserName)
 
 	if err != nil {
 		return err
@@ -225,13 +214,7 @@ func handleCreateFeedFollow(state *State, cmd cliCommand) error {
 	return nil
 }
 
-func handleGetFeedFollowsForUser(state *State, cmd cliCommand) error {
-	user, err := state.db.GetUser(context.Background(), state.Cfg.CurrentUserName)
-
-	if err != nil {
-		return err
-	}
-
+func handleGetFeedFollowsForUser(state *State, cmd cliCommand, user database.User) error {
 	followFeed, err := state.db.GetFeedFollowsForUser(context.Background(), user.ID)
 
 	if err != nil {
@@ -247,15 +230,9 @@ func handleGetFeedFollowsForUser(state *State, cmd cliCommand) error {
 	return nil
 }
 
-func handleRemoveFeedFollow(state *State, cmd cliCommand) error {
+func handleRemoveFeedFollow(state *State, cmd cliCommand, user database.User) error {
 	if len(cmd.arguments) == 0 {
 		return fmt.Errorf("please enter feed's URL you want to unfollow")
-	}
-
-	user, err := state.db.GetUser(context.Background(), state.Cfg.CurrentUserName)
-
-	if err != nil {
-		return err
 	}
 
 	feed, err := state.db.GetFeedByUrl(context.Background(), cmd.arguments[0])
@@ -274,6 +251,36 @@ func handleRemoveFeedFollow(state *State, cmd cliCommand) error {
 	}
 
 	fmt.Print(deletedFeed)
+
+	return nil
+}
+
+func handleBrowse(state *State, cmd cliCommand, user database.User) error {
+	limit := int32(2)
+
+	if len(cmd.arguments) > 0 {
+		convertedLimit, err := strconv.Atoi(cmd.arguments[0])
+
+		if err != nil {
+			return nil
+		}
+
+		limit = int32(convertedLimit)
+	}
+
+	posts, err := state.db.GetPostsForUser(context.Background(), database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  limit,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	for _, p := range posts {
+		fmt.Println(p.Title)
+		fmt.Println(p.Description.String)
+	}
 
 	return nil
 }

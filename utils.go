@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"html"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/NikolaTosic-sudo/gator/internal/database"
@@ -11,9 +14,16 @@ import (
 
 func middlewareLoggedIn(handler func(s *State, cmd cliCommand, user database.User) error) func(*State, cliCommand) error {
 
-	// var emptyUser database.User
+	return func(s *State, cmd cliCommand) error {
 
-	return handleLogin
+		user, err := s.db.GetUser(context.Background(), s.Cfg.CurrentUserName)
+
+		if err != nil {
+			return err
+		}
+
+		return handler(s, cmd, user)
+	}
 }
 
 func scrapeFeeds(s *State) error {
@@ -48,8 +58,35 @@ func scrapeFeeds(s *State) error {
 		post.Title = html.UnescapeString(post.Title)
 		post.Description = html.UnescapeString(post.Description)
 		rssFeed.Channel.Item[i] = post
-		fmt.Println(rssFeed.Channel.Item[i].Title)
+		publishedAt := sql.NullTime{}
+		if t, err := time.Parse(time.RFC1123Z, post.PubDate); err == nil {
+			publishedAt = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		}
+		if err != nil {
+			return err
+		}
+		_, err = s.db.CreatePost(context.Background(), database.CreatePostParams{
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       post.Title,
+			Url:         post.Title,
+			Description: sql.NullString{String: post.Description, Valid: post.Description != ""},
+			PublishedAt: publishedAt,
+			FeedID:      nextFeed.ID,
+		})
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				continue
+			}
+			log.Printf("Couldn't create post: %v", err)
+			continue
+		}
 	}
+
+	log.Printf("Feed %s collected, %v posts found", rssFeed.Channel.Title, len(rssFeed.Channel.Item))
 
 	return nil
 }

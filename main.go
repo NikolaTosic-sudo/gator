@@ -40,11 +40,12 @@ func main() {
 	cmds.register("reset", handleReset)
 	cmds.register("users", handleGetAllUsers)
 	cmds.register("agg", handleFetch)
-	cmds.register("addfeed", handleAddFeed)
+	cmds.register("addfeed", middlewareLoggedIn(handleAddFeed))
 	cmds.register("feeds", handleGetAllFeeds)
-	cmds.register("follow", handleCreateFeedFollow)
-	cmds.register("following", handleGetFeedFollowsForUser)
-	cmds.register("unfollow", handleRemoveFeedFollow)
+	cmds.register("follow", middlewareLoggedIn(handleCreateFeedFollow))
+	cmds.register("following", middlewareLoggedIn(handleGetFeedFollowsForUser))
+	cmds.register("unfollow", middlewareLoggedIn(handleRemoveFeedFollow))
+	cmds.register("browse", middlewareLoggedIn(handleBrowse))
 
 	arguments := os.Args
 
