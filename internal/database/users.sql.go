@@ -64,18 +64,18 @@ func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, created_at, updated_at, name FROM users WHERE id = $1
+SELECT id, name FROM users WHERE id = $1
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
+type GetUserByIdRow struct {
+	ID   uuid.UUID
+	Name string
+}
+
+func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (GetUserByIdRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserById, id)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Name,
-	)
+	var i GetUserByIdRow
+	err := row.Scan(&i.ID, &i.Name)
 	return i, err
 }
 
