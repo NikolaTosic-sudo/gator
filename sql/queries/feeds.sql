@@ -11,5 +11,7 @@ VALUES (
 RETURNING *;
 
 -- name: GetAllFeeds :many
-
 SELECT name, url, user_id FROM feeds;
+
+-- name: GetFeedByUrl :one
+SELECT id, name, url, user_id FROM feeds WHERE url = $1;

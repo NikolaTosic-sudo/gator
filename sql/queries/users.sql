@@ -9,13 +9,15 @@ VALUES (
 RETURNING *;
 
 -- name: GetUser :one
-SELECT name, id FROM users WHERE name = $1;
+SELECT * FROM users WHERE name = $1;
 
 -- name: GetUserById :one
-SELECT name FROM users WHERE id = $1;
+SELECT id, name FROM users WHERE id = $1;
 
 -- name: ResetDB :exec
 DELETE FROM users;
+DELETE FROM feeds;
+DELETE FROM feed_follows;
 
 -- name: GetUsers :many
 SELECT * FROM users;
