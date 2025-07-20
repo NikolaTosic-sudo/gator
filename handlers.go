@@ -153,6 +153,17 @@ func handleAddFeed(state *State, cmd cliCommand) error {
 		return err
 	}
 
+	_, err = state.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    user.ID,
+		FeedID:    createFeed.ID,
+	})
+
+	if err != nil {
+		return err
+	}
+
 	fmt.Print(createFeed)
 
 	return nil
@@ -176,6 +187,93 @@ func handleGetAllFeeds(state *State, cmd cliCommand) error {
 		fmt.Println(feed.Url)
 		fmt.Println(user.Name)
 	}
+
+	return nil
+}
+
+func handleCreateFeedFollow(state *State, cmd cliCommand) error {
+	if len(cmd.arguments) == 0 {
+		return fmt.Errorf("pleaes enter a valid url")
+	}
+
+	feed, err := state.db.GetFeedByUrl(context.Background(), cmd.arguments[0])
+
+	if err != nil {
+		return err
+	}
+
+	user, err := state.db.GetUser(context.Background(), state.Cfg.CurrentUserName)
+
+	if err != nil {
+		return err
+	}
+
+	followFeed, err := state.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(followFeed.UserName)
+	fmt.Println(followFeed.FeedName)
+
+	return nil
+}
+
+func handleGetFeedFollowsForUser(state *State, cmd cliCommand) error {
+	user, err := state.db.GetUser(context.Background(), state.Cfg.CurrentUserName)
+
+	if err != nil {
+		return err
+	}
+
+	followFeed, err := state.db.GetFeedFollowsForUser(context.Background(), user.ID)
+
+	if err != nil {
+		return err
+	}
+
+	for _, feed := range followFeed {
+		fmt.Println(feed.FeedName)
+	}
+
+	fmt.Println(user.Name)
+
+	return nil
+}
+
+func handleRemoveFeedFollow(state *State, cmd cliCommand) error {
+	if len(cmd.arguments) == 0 {
+		return fmt.Errorf("please enter feed's URL you want to unfollow")
+	}
+
+	user, err := state.db.GetUser(context.Background(), state.Cfg.CurrentUserName)
+
+	if err != nil {
+		return err
+	}
+
+	feed, err := state.db.GetFeedByUrl(context.Background(), cmd.arguments[0])
+
+	if err != nil {
+		return err
+	}
+
+	deletedFeed, err := state.db.RemoveFeedFollow(context.Background(), database.RemoveFeedFollowParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(deletedFeed)
 
 	return nil
 }

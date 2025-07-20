@@ -42,6 +42,9 @@ func main() {
 	cmds.register("agg", handleFetch)
 	cmds.register("addfeed", handleAddFeed)
 	cmds.register("feeds", handleGetAllFeeds)
+	cmds.register("follow", handleCreateFeedFollow)
+	cmds.register("following", handleGetFeedFollowsForUser)
+	cmds.register("unfollow", handleRemoveFeedFollow)
 
 	arguments := os.Args
 
